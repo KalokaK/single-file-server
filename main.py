@@ -3,9 +3,11 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import os
 import base64
+import logging
+import json
 
 app = Flask(__name__)
-
+logging.basicConfig(filename="app.log")
 # Define a simple API key for authentication
 API_KEY_PATH = "api.key"
 
@@ -31,8 +33,15 @@ def decrypt_data(key: bytes, encrypted_data: bytes) -> str:
 # POST endpoint to save data (with encryption)
 @app.route('/save', methods=['POST'])
 def save_data():
+    logging.debug(request.headers)
+
+    data = request.get_json()
+    # {'interaction': 'Retrying memory save operation on October 17, 2024.', 
+    # 'encryptionKey': 'BhspQHYH5IEPlp/84R+FrbhfEEB5cDbQSYae4WIRkl0='}
+    message = data['interaction']
+    encryption_key = data['encryptionKey']
+
     api_key = request.headers.get('X-API-KEY')
-    encryption_key = request.headers.get('X-ENCRYPTION-KEY')
     encryption_key = base64.b64decode(encryption_key)
 
     if api_key != app.config["API_KEY"]:
@@ -41,8 +50,7 @@ def save_data():
     if not encryption_key or len(encryption_key) != 32:  # AES-256 requires a 32-byte key
         return abort(400, description="Invalid encryption key. Must be 32 bytes.")
 
-    data = request.get_json()
-
+    data = message
     if data:
         # Encrypt the data with the user-provided key
         encrypted_data = encrypt_data(encryption_key, str(data))
@@ -57,8 +65,11 @@ def save_data():
 # GET endpoint to retrieve data (with decryption)
 @app.route('/get', methods=['GET'])
 def get_data():
+    
+    data = request.get_json()
+    encryption_key = data['encryptionKey']
+
     api_key = request.headers.get('X-API-KEY')
-    encryption_key = request.headers.get('X-ENCRYPTION-KEY')
     encryption_key = base64.b64decode(encryption_key)
 
     if api_key != app.config["API_KEY"]:
@@ -85,4 +96,4 @@ if __name__ == '__main__':
     with open(API_KEY_PATH, "r") as fp:
         app.config["API_KEY"] = fp.read()[:-1]
 
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=5001, use_debugger=False, use_reloader=False, passthrough_errors=True)

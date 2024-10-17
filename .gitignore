@@ -130,6 +130,7 @@ ENV/
 env.bak/
 venv.bak/
 
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -162,3 +163,4 @@ cython_debug/
 #.idea/
 api.key
 data.txt
+.vscode/
