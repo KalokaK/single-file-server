@@ -41,7 +41,6 @@ def save_data():
     if not encryption_key or len(encryption_key) != 32:  # AES-256 requires a 32-byte key
         return abort(400, description="Invalid encryption key. Must be 32 bytes.")
 
-    encryption_key = encryption_key.encode('utf-8')
     data = request.get_json()
 
     if data:
@@ -68,8 +67,6 @@ def get_data():
     if not encryption_key or len(encryption_key) != 32:
         return abort(400, description="Invalid encryption key. Must be 32 bytes.")
 
-    encryption_key = encryption_key.encode('utf-8')
-
     try:
         # Read the encrypted data from the file
         with open(FILE_PATH, 'rb') as file:
@@ -86,6 +83,6 @@ def get_data():
 
 if __name__ == '__main__':
     with open(API_KEY_PATH, "r") as fp:
-        app.config["API_KEY"] = fp.read()
+        app.config["API_KEY"] = fp.read()[:-1]
 
     app.run(host='0.0.0.0', port=5001)
