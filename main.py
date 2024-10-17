@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, abort
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import os
+import base64
 
 app = Flask(__name__)
 
@@ -32,6 +33,7 @@ def decrypt_data(key: bytes, encrypted_data: bytes) -> str:
 def save_data():
     api_key = request.headers.get('X-API-KEY')
     encryption_key = request.headers.get('X-ENCRYPTION-KEY')
+    encryption_key = base64.b64decode(encryption_key)
 
     if api_key != app.config["API_KEY"]:
         return abort(403, description="Invalid API key")
@@ -58,6 +60,7 @@ def save_data():
 def get_data():
     api_key = request.headers.get('X-API-KEY')
     encryption_key = request.headers.get('X-ENCRYPTION-KEY')
+    encryption_key = base64.b64decode(encryption_key)
 
     if api_key != app.config["API_KEY"]:
         return abort(403, description="Invalid API key")
